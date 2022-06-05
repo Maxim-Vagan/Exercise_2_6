@@ -8,10 +8,10 @@ import ru.maxvagan.services.EmployeeBookService;
 
 @RestController
 @RequestMapping(path = "/employee")
-public class EmployeeBookController {
+public class EmployeeController {
     private final EmployeeBookService employeeBookService;
 
-    public EmployeeBookController(EmployeeBookService employeeBookService) {
+    public EmployeeController(EmployeeBookService employeeBookService) {
         this.employeeBookService = employeeBookService;
     }
 
@@ -20,31 +20,31 @@ public class EmployeeBookController {
         return employeeBookService.getHelpInfo();
     }
 
-    @GetMapping(path = "/fill-book")
+    @GetMapping(path = "/fillBook")
     public String fillStaffBook(@RequestParam("count_staff") int inpQuantity) {
         String output = employeeBookService.fillStaffBook(inpQuantity);
         return "<td><tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr></td>";
     }
 
-    @GetMapping(path = "/add-employee")
-    public String addEmployeeToBook(@RequestParam("name") String inpName, @RequestParam("lastname") String inpLastName) {
+    @GetMapping(path = "/add")
+    public String addEmployeeToBook(@RequestParam("firstName") String inpName, @RequestParam("lastName") String inpLastName) {
         String output = employeeBookService.addEmployeeToBook(inpName, inpLastName);
         return "<td><tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr></td>";
     }
 
-    @GetMapping(path = "/del-employee")
-    public String deleteEmployeeFromBook(@RequestParam("name") String inpName, @RequestParam("lastname") String inpLastName) {
+    @GetMapping(path = "/remove")
+    public String deleteEmployeeFromBook(@RequestParam("firstName") String inpName, @RequestParam("lastName") String inpLastName) {
         String output = employeeBookService.deleteEmployeeFromBook(inpName, inpLastName);
         return "<td><tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr></td>";
     }
 
-    @GetMapping(path = "/find-employee")
-    public String findEmployee(@RequestParam("name") String inpName, @RequestParam("lastname") String inpLastName) {
+    @GetMapping(path = "/find")
+    public String findEmployee(@RequestParam("firstName") String inpName, @RequestParam("lastName") String inpLastName) {
         String output = employeeBookService.findEmployee(inpName, inpLastName);
         return "<td><tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr></td>";
     }
 
-    @GetMapping(path = "/show-book")
+    @GetMapping(path = "/showBook")
     public String showListOfStaff() {
         String output = employeeBookService.showListOfStaff();
         return "<td><tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr></td>";

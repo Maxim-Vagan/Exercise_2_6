@@ -1,7 +1,9 @@
 package ru.maxvagan.services.impls;
 
 import org.springframework.stereotype.Service;
+import ru.maxvagan.exceptions.EmployeeAlreadyAddedException;
 import ru.maxvagan.exceptions.EmployeeNotFoundException;
+import ru.maxvagan.exceptions.EmployeeStorageIsFullException;
 import ru.maxvagan.mainclasses.Employee;
 import ru.maxvagan.mainclasses.GeneratorEmployee;
 import ru.maxvagan.services.EmployeeBookService;
@@ -13,6 +15,7 @@ import java.util.List;
 public class EmployeeBookServiceImpl implements EmployeeBookService {
     private GeneratorEmployee humanResourceManager = new GeneratorEmployee();
     private List<Employee> bookOfStaff = new ArrayList<Employee>();
+    private int maximumStaffCount = 0;
 
     private int getEmployeeIndex(String inpName, String inpLastName) {
         int foundIndex = -1;
@@ -39,6 +42,7 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
 
     @Override
     public String fillStaffBook(int inpStaffCount) {
+        maximumStaffCount = inpStaffCount;
         for (int i = 0; i < inpStaffCount; i++) {
             bookOfStaff.add(new Employee(humanResourceManager.giveAnEmployeeName(),
                     humanResourceManager.giveAnEmployeeLastName()));
@@ -48,20 +52,37 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
 
     @Override
     public String addEmployeeToBook(String inpName, String inpLastName) {
-        bookOfStaff.add(new Employee(inpName, inpLastName));
-        return String.format("Добавлен новый сотрудник в штат: %s %s;Всего в штате: %s", inpName, inpLastName, bookOfStaff.size());
+        int employeeIndex = -1;
+        String messageStr = "";
+        Employee worker = new Employee(inpName, inpLastName);
+        if (bookOfStaff.size() == maximumStaffCount)
+            throw new EmployeeStorageIsFullException("Штат сотрудников переполнен!");
+        try {
+            employeeIndex = getEmployeeIndex(inpName, inpLastName);
+        } catch (EmployeeNotFoundException e) {
+            messageStr = "Поступил Новый сотрудник";
+        } finally {
+            if (employeeIndex >= 0)
+                throw new EmployeeAlreadyAddedException(String.format("Сотрудник %s уже добавлен в штат!", worker));
+            bookOfStaff.add(worker);
+            return String.format("%s;Добавлен новый сотрудник в штат: %s;Всего в штате: %s",
+                    messageStr,
+                    worker,
+                    bookOfStaff.size());
+        }
     }
 
     @Override
     public String deleteEmployeeFromBook(String inpName, String inpLastName) {
         int employeeIndex = -1;
         String messageStr = "";
+        Employee worker = new Employee(inpName, inpLastName);
         try {
             employeeIndex = getEmployeeIndex(inpName, inpLastName);
             bookOfStaff.remove(employeeIndex);
-            messageStr = String.format("Сотрудник %s %s был удален", inpName, inpLastName);
+            messageStr = String.format("Сотрудник %s был удален", worker);
         } catch (EmployeeNotFoundException e) {
-            messageStr = String.format("Сотрудник %s %s не найден!", inpName, inpLastName);
+            messageStr = String.format("Сотрудник %s не найден!", worker);
             e.printStackTrace();
         } finally {
             return String.format("%s;Всего в штате: %s", messageStr, bookOfStaff.size());
@@ -72,11 +93,12 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
     public String findEmployee(String inpName, String inpLastName) {
         int employeeIndex = -1;
         String messageStr = "";
+        Employee worker = new Employee(inpName, inpLastName);
         try {
             employeeIndex = getEmployeeIndex(inpName, inpLastName);
             messageStr = String.format("Найден сотрудник %s", bookOfStaff.get(employeeIndex));
         } catch (EmployeeNotFoundException e) {
-            messageStr = String.format("Сотрудник %s %s не найден!", inpName, inpLastName);
+            messageStr = String.format("Сотрудник %s не найден!", worker);
             e.printStackTrace();
         } finally {
             return String.format("%s;Всего в штате: %s", messageStr, bookOfStaff.size());

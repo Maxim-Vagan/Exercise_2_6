@@ -34,7 +34,7 @@ public class Employee {
 
     @Override
     public String toString() {
-        return "Name: \"" + name + "\"" +
-                ", Lastname: \"" + lastname + "\"";
+        return "{ \"firstName\": \"" + name + "\"" +
+                ", \"lastName\": \"" + lastname + "\" }";
     }
 }
