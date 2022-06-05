@@ -33,11 +33,11 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
     @Override
     public String getHelpInfo() {
         return "<h1>Справочная информация по работе с книгой сотрудников!</h1>" +
-                "<td><tr><h3>Для заполнения книги штатом сотрудников выполните команду - <b>/fill-book</b></h3></tr>" +
-                "<tr><h3>Для вывода штата сотрудников выполните команду - <b>/show-book</b></h3></tr>" +
-                "<tr><h3>Для добавления сотрудника в штат выполните команду - <b>/add-employee?name=...&lastname=...</b>, где ... - значение имени или отчества</h3></tr>" +
-                "<tr><h3>Для удаления сотрудника из штата выполните команду - <b>/del-employee?name=...&lastname=...</b>, где ... - значение имени или отчества</h3></tr>" +
-                "<tr><h3>Для поиска сотрудника выполните команду - <b>/find-employee?name=...&lastname=...</b>, где ... - значение имени или отчества</h3></tr></td>";
+                "<td><tr><h3>Для заполнения книги штатом сотрудников выполните команду - <b>/fillBook?count_staff=..., где ... - значение кол-во сотрудников в штате</b></h3></tr>" +
+                "<tr><h3>Для вывода штата сотрудников выполните команду - <b>/showBook</b></h3></tr>" +
+                "<tr><h3>Для добавления сотрудника в штат выполните команду - <b>/add?firstName=...&lastName=...</b>, где ... - значение имени или отчества</h3></tr>" +
+                "<tr><h3>Для удаления сотрудника из штата выполните команду - <b>/remove?firstName=...&lastName=...</b>, где ... - значение имени или отчества</h3></tr>" +
+                "<tr><h3>Для поиска сотрудника выполните команду - <b>/find?firstName=...&lastName=...</b>, где ... - значение имени или отчества</h3></tr></td>";
     }
 
     @Override
@@ -55,7 +55,7 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
         int employeeIndex = -1;
         String messageStr = "";
         Employee worker = new Employee(inpName, inpLastName);
-        if (bookOfStaff.size() == maximumStaffCount)
+        if (bookOfStaff.size() == maximumStaffCount && bookOfStaff.size() > 0)
             throw new EmployeeStorageIsFullException("Штат сотрудников переполнен!");
         try {
             employeeIndex = getEmployeeIndex(inpName, inpLastName);
@@ -106,7 +106,7 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
     }
 
     @Override
-    public String showListOfStaff() {
-        return String.join(";", bookOfStaff.toArray().toString());
+    public List<Employee> showListOfStaff() {
+        return bookOfStaff;
     }
 }
