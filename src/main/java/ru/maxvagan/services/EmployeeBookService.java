@@ -2,7 +2,7 @@ package ru.maxvagan.services;
 
 import ru.maxvagan.mainclasses.Employee;
 
-import java.util.List;
+import java.util.Map;
 
 public interface EmployeeBookService {
 
@@ -11,5 +11,5 @@ public interface EmployeeBookService {
     String addEmployeeToBook(String inpName, String inpLastName);
     String deleteEmployeeFromBook(String inpName, String inpLastName);
     String findEmployee(String inpName, String inpLastName);
-    List<Employee> showListOfStaff();
+    Map<String, Employee> showListOfStaff();
 }

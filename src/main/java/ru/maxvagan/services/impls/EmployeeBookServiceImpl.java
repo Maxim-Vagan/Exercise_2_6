@@ -8,26 +8,19 @@ import ru.maxvagan.mainclasses.Employee;
 import ru.maxvagan.mainclasses.GeneratorEmployee;
 import ru.maxvagan.services.EmployeeBookService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class EmployeeBookServiceImpl implements EmployeeBookService {
-    private GeneratorEmployee humanResourceManager = new GeneratorEmployee();
-    private List<Employee> bookOfStaff = new ArrayList<Employee>();
+    private final GeneratorEmployee humanResourceManager = new GeneratorEmployee();
+    private Map<String, Employee> bookOfStaff = new HashMap<>();
     private int maximumStaffCount = 0;
 
-    private int getEmployeeIndex(String inpName, String inpLastName) {
-        int foundIndex = -1;
-        if (bookOfStaff.isEmpty()) throw new EmployeeNotFoundException("Сотрудник не найден");
-        for (int i = 0; i < bookOfStaff.size(); i++) {
-            if (bookOfStaff.get(i).getName().equals(inpName) && bookOfStaff.get(i).getLastname().equals(inpLastName)) {
-                foundIndex = i;
-                break;
-            }
-        }
-        if (foundIndex < 0) throw new EmployeeNotFoundException("Сотрудник не найден");
-        return foundIndex;
+    private String getEmployee(String inpName, String inpLastName) {
+        Employee worker = bookOfStaff.get(inpName + inpLastName);
+        if (worker == null) throw new EmployeeNotFoundException("Сотрудник не найден");
+        return inpName + inpLastName;
     }
 
     @Override
@@ -43,70 +36,69 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
     @Override
     public String fillStaffBook(int inpStaffCount) {
         maximumStaffCount = inpStaffCount;
+        String workersName = "";
+        String workersLastName = "";
+        if (!bookOfStaff.isEmpty()) bookOfStaff.clear();
         for (int i = 0; i < inpStaffCount; i++) {
-            bookOfStaff.add(new Employee(humanResourceManager.giveAnEmployeeName(),
-                    humanResourceManager.giveAnEmployeeLastName()));
+            workersName = humanResourceManager.giveAnEmployeeName();
+            workersLastName = humanResourceManager.giveAnEmployeeLastName();
+            if (!bookOfStaff.containsKey(workersName + workersLastName))
+                bookOfStaff.put(workersName + workersLastName, new Employee(workersName, workersLastName));
         }
         return String.format("Книга заполнена!;Всего в штате: %s", bookOfStaff.size());
     }
 
     @Override
     public String addEmployeeToBook(String inpName, String inpLastName) {
-        int employeeIndex = -1;
-        String messageStr = "";
-        Employee worker = new Employee(inpName, inpLastName);
+        boolean doesEmployeeInState = bookOfStaff.containsKey(inpName + inpLastName);
         if (bookOfStaff.size() == maximumStaffCount && bookOfStaff.size() > 0)
             throw new EmployeeStorageIsFullException("Штат сотрудников переполнен!");
-        try {
-            employeeIndex = getEmployeeIndex(inpName, inpLastName);
-        } catch (EmployeeNotFoundException e) {
-            messageStr = "Поступил Новый сотрудник";
-        } finally {
-            if (employeeIndex >= 0)
-                throw new EmployeeAlreadyAddedException(String.format("Сотрудник %s уже добавлен в штат!", worker));
-            bookOfStaff.add(worker);
-            return String.format("%s;Добавлен новый сотрудник в штат: %s;Всего в штате: %s",
-                    messageStr,
-                    worker,
-                    bookOfStaff.size());
-        }
+        Employee worker = new Employee(inpName, inpLastName);
+        if (doesEmployeeInState)
+            throw new EmployeeAlreadyAddedException(String.format("Сотрудник %s уже добавлен в штат!", worker));
+        bookOfStaff.put(inpName + inpLastName, worker);
+        return String.format("Добавлен новый сотрудник в штат: %s;Всего в штате: %s",
+                worker,
+                bookOfStaff.size());
     }
 
     @Override
     public String deleteEmployeeFromBook(String inpName, String inpLastName) {
-        int employeeIndex = -1;
+        String mapKey = "";
         String messageStr = "";
         Employee worker = new Employee(inpName, inpLastName);
         try {
-            employeeIndex = getEmployeeIndex(inpName, inpLastName);
-            bookOfStaff.remove(employeeIndex);
+            mapKey = getEmployee(inpName, inpLastName);
+            bookOfStaff.remove(mapKey);
             messageStr = String.format("Сотрудник %s был удален", worker);
         } catch (EmployeeNotFoundException e) {
             messageStr = String.format("Сотрудник %s не найден!", worker);
             e.printStackTrace();
         } finally {
-            return String.format("%s;Всего в штате: %s", messageStr, bookOfStaff.size());
+            messageStr = String.format("%s;Всего в штате: %s", messageStr, bookOfStaff.size());
         }
+        return messageStr;
     }
 
     @Override
     public String findEmployee(String inpName, String inpLastName) {
-        int employeeIndex = -1;
+        String maxKey = "";
         String messageStr = "";
         Employee worker = new Employee(inpName, inpLastName);
         try {
-            employeeIndex = getEmployeeIndex(inpName, inpLastName);
-            messageStr = String.format("Найден сотрудник %s", bookOfStaff.get(employeeIndex));
+            maxKey = getEmployee(inpName, inpLastName);
+            messageStr = String.format("Найден сотрудник %s", bookOfStaff.get(maxKey));
         } catch (EmployeeNotFoundException e) {
             messageStr = String.format("Сотрудник %s не найден!", worker);
             e.printStackTrace();
         } finally {
-            return String.format("%s;Всего в штате: %s", messageStr, bookOfStaff.size());
+            messageStr = String.format("%s;Всего в штате: %s", messageStr, bookOfStaff.size());
         }
+        return messageStr;
     }
 
     @Override
-    public List<Employee> showListOfStaff() {
+    public Map<String, Employee> showListOfStaff() {
         return bookOfStaff;
     }
 }
