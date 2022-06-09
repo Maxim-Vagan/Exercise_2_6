@@ -1,13 +1,13 @@
-package ru.maxvagan.exercise;
+package ru.maxvagan;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Application {
+public class SpringBootHWApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(SpringBootHWApplication.class, args);
 	}
 
 }
