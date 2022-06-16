@@ -8,19 +8,22 @@ import ru.maxvagan.mainclasses.Employee;
 import ru.maxvagan.mainclasses.GeneratorEmployee;
 import ru.maxvagan.services.EmployeeBookService;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeBookServiceImpl implements EmployeeBookService {
-    private final GeneratorEmployee humanResourceManager = new GeneratorEmployee();
-    private Map<String, Employee> bookOfStaff = new HashMap<>();
+    private final GeneratorEmployee humanResourceManager = new GeneratorEmployee(30_000.00f, 150_000.00f);
+    private List<Employee> bookOfStaff = new ArrayList<>();
     private int maximumStaffCount = 0;
 
-    private String getEmployee(String inpName, String inpLastName) {
-        Employee worker = bookOfStaff.get(inpName + inpLastName);
-        if (worker == null) throw new EmployeeNotFoundException("Сотрудник не найден");
-        return inpName + inpLastName;
+    private int getEmployee(String inpName, String inpLastName) {
+        int workerOptindex = bookOfStaff.stream()
+                .map(e -> e.hashCode())
+                .collect(Collectors.toList())
+                .indexOf(Objects.hash(inpName, inpLastName));
+        if (workerOptindex == -1) throw new EmployeeNotFoundException("Сотрудник не найден");
+        return workerOptindex;
     }
 
     @Override
@@ -38,25 +41,34 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
         maximumStaffCount = inpStaffCount;
         String workersName = "";
         String workersLastName = "";
+        float workerSalary = 0.00f;
+        short workerSubDepartment = 0;
         if (!bookOfStaff.isEmpty()) bookOfStaff.clear();
         for (int i = 0; i < inpStaffCount; i++) {
             workersName = humanResourceManager.giveAnEmployeeName();
             workersLastName = humanResourceManager.giveAnEmployeeLastName();
-            if (!bookOfStaff.containsKey(workersName + workersLastName))
-                bookOfStaff.put(workersName + workersLastName, new Employee(workersName, workersLastName));
+            workerSalary = humanResourceManager.assignSalary();
+            workerSubDepartment = humanResourceManager.assignDepartment();
+//            addEmployeeToBook(workersName, workersLastName);
+            bookOfStaff.add(new Employee(workersName, workersLastName, workerSubDepartment, workerSalary));
         }
         return String.format("Книга заполнена!;Всего в штате: %s", bookOfStaff.size());
     }
 
     @Override
     public String addEmployeeToBook(String inpName, String inpLastName) {
-        boolean doesEmployeeInState = bookOfStaff.containsKey(inpName + inpLastName);
+        boolean doesEmployeeInState = bookOfStaff.stream()
+                .filter(e -> e.getName().equals(inpName) &&
+                        e.getLastname().equals(inpLastName))
+                .findFirst()
+                .isEmpty();
+
         if (bookOfStaff.size() == maximumStaffCount && bookOfStaff.size() > 0)
             throw new EmployeeStorageIsFullException("Штат сотрудников переполнен!");
-        Employee worker = new Employee(inpName, inpLastName);
+        Employee worker = new Employee(inpName, inpLastName, humanResourceManager.assignDepartment(), humanResourceManager.assignSalary());
         if (doesEmployeeInState)
             throw new EmployeeAlreadyAddedException(String.format("Сотрудник %s уже добавлен в штат!", worker));
-        bookOfStaff.put(inpName + inpLastName, worker);
+        bookOfStaff.add(worker);
         return String.format("Добавлен новый сотрудник в штат: %s;Всего в штате: %s",
                 worker,
                 bookOfStaff.size());
@@ -64,12 +76,12 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
 
     @Override
     public String deleteEmployeeFromBook(String inpName, String inpLastName) {
-        String mapKey = "";
+        int workerIdx = -1;
         String messageStr = "";
-        Employee worker = new Employee(inpName, inpLastName);
+        Employee worker = new Employee(inpName, inpLastName, (short) 1, 0.00f);
         try {
-            mapKey = getEmployee(inpName, inpLastName);
-            bookOfStaff.remove(mapKey);
+            workerIdx = getEmployee(inpName, inpLastName);
+            bookOfStaff.remove(workerIdx);
             messageStr = String.format("Сотрудник %s был удален", worker);
         } catch (EmployeeNotFoundException e) {
             messageStr = String.format("Сотрудник %s не найден!", worker);
@@ -81,13 +93,39 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
     }
 
     @Override
+    public String getMaxSalaryEmployeeInSubDep(short inpSubDep) {
+        Optional<Employee> winnerWorker = bookOfStaff.stream()
+                .filter(e -> e.getSubDepartment()==inpSubDep)
+                .max(Comparator.comparing(e -> e.getSalary()));
+        return winnerWorker.orElseThrow(() -> new EmployeeNotFoundException("Нет сотрудников в отделе с максимальной ЗП")).toString();
+    }
+
+    @Override
+    public String getMinSalaryEmployeeInSubDep(short inpSubDep) {
+        Optional<Employee> winnerWorker = bookOfStaff.stream()
+                .filter(e -> e.getSubDepartment()==inpSubDep)
+                .min(Comparator.comparing(e -> e.getSalary()));
+        return winnerWorker.orElseThrow(() -> new EmployeeNotFoundException("Нет сотрудников в отделе с минимальной ЗП")).toString();
+    }
+
+    @Override
+    public String showListOfStaffOfSubDep(short inpSubDep) {
+        List<String> EmployeeList = bookOfStaff.stream()
+                .filter(e -> e.getSubDepartment() == inpSubDep)
+                .map(e -> "<tr><h3>" + e.toString() + "</h3></tr>")
+                .collect(Collectors.toList());
+        return String.join("", EmployeeList);
+    }
+
+    @Override
     public String findEmployee(String inpName, String inpLastName) {
-        String maxKey = "";
+        int workerIdx = -1;
         String messageStr = "";
-        Employee worker = new Employee(inpName, inpLastName);
+        Employee worker = new Employee(inpName, inpLastName, (short) 0, 0.00f);
         try {
-            maxKey = getEmployee(inpName, inpLastName);
-            messageStr = String.format("Найден сотрудник %s", bookOfStaff.get(maxKey));
+            workerIdx = getEmployee(inpName, inpLastName);
+            worker = bookOfStaff.get(workerIdx);
+            messageStr = String.format("Найден сотрудник %s", worker);
         } catch (EmployeeNotFoundException e) {
             messageStr = String.format("Сотрудник %s не найден!", worker);
             e.printStackTrace();
@@ -98,7 +136,11 @@ public class EmployeeBookServiceImpl implements EmployeeBookService {
     }
 
     @Override
-    public Map<String, Employee> showListOfStaff() {
-        return bookOfStaff;
+    public String showListOfStaff() {
+        List<String> EmployeeList = bookOfStaff.stream()
+                .sorted(Comparator.comparing(e -> e.getSubDepartment()))
+                .map(e -> "<tr><h3>" + e.toString() + "</h3></tr>")
+                .collect(Collectors.toList());
+        return String.join("", EmployeeList);
     }
 }

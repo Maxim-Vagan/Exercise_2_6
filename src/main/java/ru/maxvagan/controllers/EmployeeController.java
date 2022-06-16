@@ -8,10 +8,8 @@ import ru.maxvagan.exceptions.EmployeeStorageIsFullException;
 import ru.maxvagan.mainclasses.Employee;
 import ru.maxvagan.services.EmployeeBookService;
 
-import java.util.Map;
-
 @RestController
-@RequestMapping(path = "/employee")
+@RequestMapping(path = "/departments")
 public class EmployeeController {
     private final EmployeeBookService employeeBookService;
 
@@ -84,14 +82,42 @@ public class EmployeeController {
         return respStr;
     }
 
-    @GetMapping(path = "/showBook")
+    @GetMapping(path = "/max-salary")
+    public String getMaxSalaryEmployeeInSubDep(@RequestParam("departmentId") Short inpDepIdx) {
+        String output = employeeBookService.getMaxSalaryEmployeeInSubDep(inpDepIdx);
+        StringBuilder listOfStaff = new StringBuilder();
+        listOfStaff.append("<h2>Сотрудник в департаменте " + inpDepIdx + " с макс. ЗП</h2><td>");
+        listOfStaff.append("<tr><h3>").append(output).append("</h3></tr>");
+        listOfStaff.append("</td>");
+        return listOfStaff.toString();
+    }
+
+    @GetMapping(path = "/min-salary")
+    public String getMinSalaryEmployeeInSubDep(@RequestParam("departmentId") Short inpDepIdx) {
+        String output = employeeBookService.getMinSalaryEmployeeInSubDep(inpDepIdx);
+        StringBuilder listOfStaff = new StringBuilder();
+        listOfStaff.append("<h2>Сотрудник в департаменте " + inpDepIdx + " с мин. ЗП</h2><td>");
+        listOfStaff.append("<tr><h3>").append(output).append("</h3></tr>");
+        listOfStaff.append("</td>");
+        return listOfStaff.toString();
+    }
+
+    @GetMapping(path = "/allindepartment")
+    public String showListOfStaffOfSubDep(@RequestParam("departmentId") Short inpDepIdx) {
+        String output = employeeBookService.showListOfStaffOfSubDep(inpDepIdx);
+        StringBuilder listOfStaff = new StringBuilder();
+        listOfStaff.append("<h2>Список сотрудников в департаменте " + inpDepIdx + "</h2><td>");
+        listOfStaff.append("").append(output).append("</h3></tr>");
+        listOfStaff.append("</td>");
+        return listOfStaff.toString();
+    }
+
+    @GetMapping(path = "/all")
     public String showListOfStaff() {
-        Map<String, Employee> output = employeeBookService.showListOfStaff();
+        String output = employeeBookService.showListOfStaff();
         StringBuilder listOfStaff = new StringBuilder();
         listOfStaff.append("<h2>Список штатных сотрудников</h2><td>");
-        for (Employee employee : output.values()) {
-            listOfStaff.append("<tr><h3>").append(employee.toString()).append("</h3></tr>");
-        }
+        listOfStaff.append("<tr><h3>").append(output).append("</h3></tr>");
         listOfStaff.append("</td>");
         return listOfStaff.toString();
     }
