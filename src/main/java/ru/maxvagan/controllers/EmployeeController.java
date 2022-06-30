@@ -2,16 +2,17 @@ package ru.maxvagan.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.maxvagan.exceptions.BadRequestException;
 import ru.maxvagan.exceptions.EmployeeAlreadyAddedException;
 import ru.maxvagan.exceptions.EmployeeNotFoundException;
 import ru.maxvagan.exceptions.EmployeeStorageIsFullException;
-import ru.maxvagan.mainclasses.Employee;
 import ru.maxvagan.services.EmployeeBookService;
 
 @RestController
 @RequestMapping(path = "/departments")
 public class EmployeeController {
     private final EmployeeBookService employeeBookService;
+    private final String MAIN_URL = "<a href='http://localhost:8080/departments'>В Меню</a>";
 
     public EmployeeController(EmployeeBookService employeeBookService) {
         this.employeeBookService = employeeBookService;
@@ -23,7 +24,7 @@ public class EmployeeController {
     }
 
     @GetMapping(path = "/error")
-    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR , reason = "Проверьте, пожалуйста, параметры запроса. Убедитесь, что операция целесообразна")
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Проверьте, пожалуйста, параметры запроса. Убедитесь, что операция целесообразна")
     public String showError() {
         return "Приносим извинения! Возник сбой при выполнении функций";
     }
@@ -40,6 +41,9 @@ public class EmployeeController {
         try {
             String output = employeeBookService.addEmployeeToBook(inpName, inpLastName);
             respStr = "<tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr>";
+        } catch (BadRequestException e) {
+            respStr = String.format("<tr><h3>Значение \"%s\" и/или \"%s\" не корректно</h3></tr>", inpName, inpLastName);
+            e.printStackTrace();
         } catch (EmployeeStorageIsFullException e) {
             respStr = "<tr><h3>Штат уже полон дождитесь появления вакансии!</h3></tr>";
             e.printStackTrace();
@@ -47,7 +51,7 @@ public class EmployeeController {
             respStr = String.format("<tr><h3>Сотрудник %s %s уже состоит в штате</h3></tr>", inpName, inpLastName);
             e.printStackTrace();
         } finally {
-            respStr = "<td>"+respStr+"</td>";
+            respStr = "<td>" + respStr + "</td>";
         }
         return respStr;
     }
@@ -58,11 +62,14 @@ public class EmployeeController {
         try {
             String output = employeeBookService.deleteEmployeeFromBook(inpName, inpLastName);
             respStr = "<tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr>";
+        } catch (BadRequestException e) {
+            respStr = String.format("<tr><h3>Значение \"%s\" и/или \"%s\" не корректно</h3></tr>", inpName, inpLastName);
+            e.printStackTrace();
         } catch (EmployeeNotFoundException e) {
             respStr = String.format("<tr><h3>Увольняемый сотрудник %s %s не найден!</h3></tr>", inpName, inpLastName);
             e.printStackTrace();
         } finally {
-            respStr = "<td>"+respStr+"</td>";
+            respStr = "<td>" + respStr + "</td>";
         }
         return respStr;
     }
@@ -73,11 +80,14 @@ public class EmployeeController {
         try {
             String output = employeeBookService.findEmployee(inpName, inpLastName);
             respStr = "<tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr>";
+        } catch (BadRequestException e) {
+            respStr = String.format("<tr><h3>Значение \"%s\" и/или \"%s\" не корректно</h3></tr>", inpName, inpLastName);
+            e.printStackTrace();
         } catch (EmployeeNotFoundException e) {
             respStr = String.format("<tr><h3>Сотрудник %s %s не найден!</h3></tr>", inpName, inpLastName);
             e.printStackTrace();
         } finally {
-            respStr = "<td>"+respStr+"</td>";
+            respStr = "<td>" + respStr + "</td>";
         }
         return respStr;
     }
@@ -88,6 +98,7 @@ public class EmployeeController {
         StringBuilder listOfStaff = new StringBuilder();
         listOfStaff.append("<h2>Сотрудник в департаменте " + inpDepIdx + " с макс. ЗП</h2><td>");
         listOfStaff.append("<tr><h3>").append(output).append("</h3></tr>");
+        listOfStaff.append("<tr><h3>").append(MAIN_URL).append("</h3></tr>");
         listOfStaff.append("</td>");
         return listOfStaff.toString();
     }
@@ -98,6 +109,7 @@ public class EmployeeController {
         StringBuilder listOfStaff = new StringBuilder();
         listOfStaff.append("<h2>Сотрудник в департаменте " + inpDepIdx + " с мин. ЗП</h2><td>");
         listOfStaff.append("<tr><h3>").append(output).append("</h3></tr>");
+        listOfStaff.append("<tr><h3>").append(MAIN_URL).append("</h3></tr>");
         listOfStaff.append("</td>");
         return listOfStaff.toString();
     }
@@ -108,6 +120,7 @@ public class EmployeeController {
         StringBuilder listOfStaff = new StringBuilder();
         listOfStaff.append("<h2>Список сотрудников в департаменте " + inpDepIdx + "</h2><td>");
         listOfStaff.append("").append(output).append("</h3></tr>");
+        listOfStaff.append("<tr><h3>").append(MAIN_URL).append("</h3></tr>");
         listOfStaff.append("</td>");
         return listOfStaff.toString();
     }
@@ -118,6 +131,7 @@ public class EmployeeController {
         StringBuilder listOfStaff = new StringBuilder();
         listOfStaff.append("<h2>Список штатных сотрудников</h2><td>");
         listOfStaff.append("<tr><h3>").append(output).append("</h3></tr>");
+        listOfStaff.append("<tr><h3>").append(MAIN_URL).append("</h3></tr>");
         listOfStaff.append("</td>");
         return listOfStaff.toString();
     }
