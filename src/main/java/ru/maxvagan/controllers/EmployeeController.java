@@ -6,21 +6,26 @@ import ru.maxvagan.exceptions.BadRequestException;
 import ru.maxvagan.exceptions.EmployeeAlreadyAddedException;
 import ru.maxvagan.exceptions.EmployeeNotFoundException;
 import ru.maxvagan.exceptions.EmployeeStorageIsFullException;
+import ru.maxvagan.services.DepartmentService;
 import ru.maxvagan.services.EmployeeBookService;
 
 @RestController
 @RequestMapping(path = "/departments")
 public class EmployeeController {
+
+    private final DepartmentService departmentService;
     private final EmployeeBookService employeeBookService;
+
     private final String MAIN_URL = "<a href='http://localhost:8080/departments'>В Меню</a>";
 
-    public EmployeeController(EmployeeBookService employeeBookService) {
+    public EmployeeController(DepartmentService departmentService, EmployeeBookService employeeBookService) {
+        this.departmentService = departmentService;
         this.employeeBookService = employeeBookService;
     }
 
     @GetMapping
     public String index() {
-        return employeeBookService.getHelpInfo();
+        return departmentService.getHelpInfo();
     }
 
     @GetMapping(path = "/error")
@@ -30,16 +35,17 @@ public class EmployeeController {
     }
 
     @GetMapping(path = "/fillBook")
-    public String fillStaffBook(@RequestParam("count_staff") int inpQuantity) {
-        String output = employeeBookService.fillStaffBook(inpQuantity);
+    public String fillStaffBook(@RequestParam("count_staff") int inpQuantity, @RequestParam("subdep") short inpSubDepId) {
+        String output = departmentService.fillSubDepartment(inpQuantity, inpSubDepId);
         return "<td><tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr></td>";
     }
 
     @GetMapping(path = "/add")
-    public String addEmployeeToBook(@RequestParam("firstName") String inpName, @RequestParam("lastName") String inpLastName) {
+    public String addEmployeeToBook(@RequestParam("firstName") String inpName, @RequestParam("lastName") String inpLastName,
+                                    @RequestParam("subDepID") short inpsubDep, @RequestParam("salary") float inpSalary) {
         String respStr = "";
         try {
-            String output = employeeBookService.addEmployeeToBook(inpName, inpLastName);
+            String output = employeeBookService.addEmployeeToBook(inpName, inpLastName, inpsubDep, inpSalary);
             respStr = "<tr><h3>" + output.replace(";", "</h3></tr><tr><h3>") + "</h3></tr>";
         } catch (BadRequestException e) {
             respStr = String.format("<tr><h3>Значение \"%s\" и/или \"%s\" не корректно</h3></tr>", inpName, inpLastName);
@@ -94,7 +100,7 @@ public class EmployeeController {
 
     @GetMapping(path = "/max-salary")
     public String getMaxSalaryEmployeeInSubDep(@RequestParam("departmentId") Short inpDepIdx) {
-        String output = employeeBookService.getMaxSalaryEmployeeInSubDep(inpDepIdx);
+        String output = departmentService.getMaxSalaryEmployeeInSubDep(inpDepIdx);
         StringBuilder listOfStaff = new StringBuilder();
         listOfStaff.append("<h2>Сотрудник в департаменте " + inpDepIdx + " с макс. ЗП</h2><td>");
         listOfStaff.append("<tr><h3>").append(output).append("</h3></tr>");
@@ -105,7 +111,7 @@ public class EmployeeController {
 
     @GetMapping(path = "/min-salary")
     public String getMinSalaryEmployeeInSubDep(@RequestParam("departmentId") Short inpDepIdx) {
-        String output = employeeBookService.getMinSalaryEmployeeInSubDep(inpDepIdx);
+        String output = departmentService.getMinSalaryEmployeeInSubDep(inpDepIdx);
         StringBuilder listOfStaff = new StringBuilder();
         listOfStaff.append("<h2>Сотрудник в департаменте " + inpDepIdx + " с мин. ЗП</h2><td>");
         listOfStaff.append("<tr><h3>").append(output).append("</h3></tr>");
@@ -116,7 +122,7 @@ public class EmployeeController {
 
     @GetMapping(path = "/allindepartment")
     public String showListOfStaffOfSubDep(@RequestParam("departmentId") Short inpDepIdx) {
-        String output = employeeBookService.showListOfStaffOfSubDep(inpDepIdx);
+        String output = departmentService.showListOfStaffOfSubDep(inpDepIdx);
         StringBuilder listOfStaff = new StringBuilder();
         listOfStaff.append("<h2>Список сотрудников в департаменте " + inpDepIdx + "</h2><td>");
         listOfStaff.append("").append(output).append("</h3></tr>");

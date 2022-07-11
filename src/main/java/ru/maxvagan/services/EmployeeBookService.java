@@ -2,18 +2,15 @@ package ru.maxvagan.services;
 
 import ru.maxvagan.mainclasses.Employee;
 
-import java.util.Map;
+import java.util.List;
 
 public interface EmployeeBookService {
+    List<Employee> getBookOfStaff();
 
-    String getHelpInfo();
-    String fillStaffBook(int inpStaffCount);
-    String addEmployeeToBook(String inpName, String inpLastName);
+    boolean cleanBook();
+    int getBookSize();
+    String addEmployeeToBook(String inpName, String inpLastName, short inpSubDepartment, float salary);
     String deleteEmployeeFromBook(String inpName, String inpLastName);
-    String getMaxSalaryEmployeeInSubDep(short inpSubDep);
-    String getMinSalaryEmployeeInSubDep(short inpSubDep);
-    String showListOfStaffOfSubDep(short inpSubDep);
-
     String findEmployee(String inpName, String inpLastName);
     String showListOfStaff();
 }
